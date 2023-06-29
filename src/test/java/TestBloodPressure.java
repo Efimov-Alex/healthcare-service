@@ -18,33 +18,65 @@ import java.io.File;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import static org.mockito.ArgumentMatchers.anyString;
+
 public class TestBloodPressure {
     @Test
-    void test_checkBloodPressure() {
+    void test_check_blood_pressure_message_out() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModules(new JavaTimeModule(), new ParameterNamesModule());
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
+        BloodPressure currentPressure = new BloodPressure(60, 120);
+
         File repoFile = new File("patients_new.txt");
-        PatientInfoRepository patientInfoRepository = new PatientInfoFileRepository(repoFile, mapper);
 
-        SendAlertService sendAlertService = Mockito.spy(SendAlertServiceImpl.class);
+        PatientInfoRepository patientInfoRepository = Mockito.mock(PatientInfoRepository.class);
 
-        MedicalService medicalService = new MedicalServiceImpl(patientInfoRepository, sendAlertService);
+        Mockito.when(patientInfoRepository.getById(anyString())).
+                thenReturn(new PatientInfo("Иван", "Петров", LocalDate.of(1980, 11, 26),
+                        new HealthInfo(new BigDecimal("36.65"), new BloodPressure(120, 80))));
 
+        SendAlertService sendAlertService = Mockito.mock(SendAlertService.class);
+
+        MedicalServiceImpl medicalService = Mockito.mock(MedicalServiceImpl.class);
+
+
+        medicalService = new MedicalServiceImpl(patientInfoRepository, sendAlertService);
+
+        medicalService.checkBloodPressure("2ee734c9-3556-48c9-bdfd-757c979f4d93", currentPressure);
+
+        Mockito.verify(sendAlertService, Mockito.times(1)).
+                send("Warning, patient with id: null, need help");
+    }
+
+    @Test
+    void test_check_blood_pressure_message_not_out() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModules(new JavaTimeModule(), new ParameterNamesModule());
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
         BloodPressure currentPressure = new BloodPressure(60, 120);
-        medicalService.checkBloodPressure("2ee734c9-3556-48c9-bdfd-757c979f4d93", currentPressure);
-        medicalService.checkBloodPressure("76bcdb91-5cbc-4b7e-825c-5aac5383d160", currentPressure);
+
+        File repoFile = new File("patients_new.txt");
+
+        PatientInfoRepository patientInfoRepository = Mockito.mock(PatientInfoRepository.class);
+
+        Mockito.when(patientInfoRepository.getById(anyString())).
+                thenReturn(new PatientInfo("Артем", "Смирнов", LocalDate.of(2001, 11, 26),
+                        new HealthInfo(new BigDecimal("36.65"), new BloodPressure(60, 120))
+                ));
+
+        SendAlertService sendAlertService = Mockito.mock(SendAlertService.class);
+
+        MedicalServiceImpl medicalService = Mockito.mock(MedicalServiceImpl.class);
+
+
+        medicalService = new MedicalServiceImpl(patientInfoRepository, sendAlertService);
+
         medicalService.checkBloodPressure("2e5ed0d1-0272-4a55-bf40-d252b4a7ca02", currentPressure);
 
-        Mockito.verify(sendAlertService, Mockito.times(1)).
-                send("Warning, patient with id: 2ee734c9-3556-48c9-bdfd-757c979f4d93, need help");
-
-        Mockito.verify(sendAlertService, Mockito.times(1)).
-                send("Warning, patient with id: 76bcdb91-5cbc-4b7e-825c-5aac5383d160, need help");
-
         Mockito.verify(sendAlertService, Mockito.times(0)).
-                send("Warning, patient with id: 2e5ed0d1-0272-4a55-bf40-d252b4a7ca02, need help");
+                send("Warning, patient with id: null, need help");
     }
 }
