@@ -1,4 +1,4 @@
-package ru.netology.patient.medical;
+package ru.netology.patient.service.medical;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
