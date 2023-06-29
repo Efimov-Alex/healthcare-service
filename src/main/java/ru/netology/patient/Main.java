@@ -24,9 +24,15 @@ public class Main {
         mapper.registerModules(new JavaTimeModule(), new ParameterNamesModule());
         mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
-        File repoFile = new File("patients.txt");
+        File repoFile = new File("patients_new.txt");
         PatientInfoRepository patientInfoRepository = new PatientInfoFileRepository(repoFile, mapper);
 
+
+        String id5 = patientInfoRepository.add(
+                new PatientInfo("Никита", "Филатов", LocalDate.of(2020, 11, 26),
+                        new HealthInfo(new BigDecimal("39.0"), new BloodPressure(120, 80)))
+        );
+        /*
         String id1 = patientInfoRepository.add(
             new PatientInfo("Иван", "Петров", LocalDate.of(1980, 11, 26),
                 new HealthInfo(new BigDecimal("36.65"), new BloodPressure(120, 80)))
@@ -37,14 +43,22 @@ public class Main {
                 new HealthInfo(new BigDecimal("36.6"), new BloodPressure(125, 78)))
         );
 
+        String id4 = patientInfoRepository.add(
+                new PatientInfo("Артем", "Смирнов", LocalDate.of(2001, 11, 26),
+                        new HealthInfo(new BigDecimal("36.65"), new BloodPressure(60, 120))
+                ));
+
+         */
+
         SendAlertService alertService = new SendAlertServiceImpl();
         MedicalService medicalService = new MedicalServiceImpl(patientInfoRepository, alertService);
 
         //run service
         BloodPressure currentPressure = new BloodPressure(60, 120);
-        medicalService.checkBloodPressure(id1, currentPressure);
+        //   medicalService.checkBloodPressure(id1, currentPressure);
+        //   medicalService.checkBloodPressure(id2, currentPressure);
 
         BigDecimal currentTemperature = new BigDecimal("37.9");
-        medicalService.checkTemperature(id1, currentTemperature);
+        //  medicalService.checkTemperature(id1, currentTemperature);
     }
 }
